@@ -81,8 +81,7 @@ services:
     command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
     volumes:
       - redis_data:/data
-    sysctls:
-      - vm.overcommit_memory=1
+
 
   product-db:
     container_name: product-db

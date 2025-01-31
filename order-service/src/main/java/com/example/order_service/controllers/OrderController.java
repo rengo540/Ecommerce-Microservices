@@ -2,6 +2,7 @@ package com.example.order_service.controllers;
 
 import com.example.order_service.dtos.OrderDto;
 import com.example.order_service.models.Order;
+import com.example.order_service.models.enums.OrderStatus;
 import com.example.order_service.response.ApiResponse;
 import com.example.order_service.services.OrderService;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,15 @@ public class OrderController {
     public ResponseEntity<ApiResponse> getUserOrders(@PathVariable Long userId) {
             List<OrderDto> order = orderService.getUserOrders(userId);
             return ResponseEntity.ok(new ApiResponse("Item Order Success!", order));
+
+    }
+
+    @PutMapping("/change-status")
+    public ResponseEntity<ApiResponse> changeOrderState(@RequestParam Long orderId,
+                                                        @RequestParam String orderStatus) {
+        Order order =  orderService.changeOrderState(orderId,orderStatus);
+        OrderDto orderDto =  orderService.convertToDto(order);
+        return ResponseEntity.ok(new ApiResponse("successfully edit", orderDto));
 
     }
 

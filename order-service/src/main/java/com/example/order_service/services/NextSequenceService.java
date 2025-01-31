@@ -16,13 +16,14 @@ public class NextSequenceService {
     @Autowired
     private MongoOperations mongo;
 
-    public int getNextSequence(String seqName)
+    public String  getNextSequence(String seqName)
     {
         CounterSequences counter = mongo.findAndModify(
                 query(where("_id").is(seqName)),
                 new Update().inc("seq",1),
                 options().returnNew(true).upsert(true),
                 CounterSequences.class);
-        return counter.getSeq();
+        assert counter != null;
+        return counter.getId();
     }
 }

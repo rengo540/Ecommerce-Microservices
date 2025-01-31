@@ -13,6 +13,7 @@ import com.example.order_service.repos.OrderRepo;
 import com.example.order_service.response.CartResponse;
 import com.example.order_service.response.ProductResponse;
 import com.example.order_service.services.iservices.IOrderService;
+import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +93,14 @@ public class OrderService implements IOrderService {
     public List<OrderDto> getUserOrders(Long userId){
         return orderRepo.findByUserId(userId).stream().map(this::convertToDto)
                 .toList();
+    }
+
+    @Override
+    public Order changeOrderState(Long orderId,String orderStatusStr) {
+        OrderStatus orderStatus = OrderStatus.valueOf(orderStatusStr.toUpperCase());
+       Order order = orderRepo.findById(orderId).orElseThrow(NotFoundException::new);
+       order.setOrderStatus(orderStatus);
+       return orderRepo.save(order);
     }
 
     @Override

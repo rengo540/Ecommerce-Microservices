@@ -19,7 +19,7 @@ import java.util.Set;
 public class Order  {
 
     @Id
-    private long id ;
+    private String id ;
     private LocalDate orderDate;
     private BigDecimal totalAmount;
     private OrderStatus orderStatus;
