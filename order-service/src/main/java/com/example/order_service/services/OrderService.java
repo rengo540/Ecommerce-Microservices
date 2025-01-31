@@ -32,7 +32,7 @@ public class OrderService implements IOrderService {
     private final CartServiceClient cartServiceClient;
     private final ProductServiceClient productServiceClient;
     private final ModelMapper modelMapper;
-
+    private final NextSequenceService nextSequenceService;
     @Override
     public OrderDto getOrder(Long orderId) {
         return orderRepo.findById(orderId).map(this::convertToDto)
@@ -56,6 +56,7 @@ public class OrderService implements IOrderService {
 
     private Order createOrder(CartResponse cart){
         Order order = new Order();
+        order.setId(nextSequenceService.getNextSequence("counter"));
         order.setUserId(cart.getUserId());
         order.setOrderStatus(OrderStatus.PENDENG);
         order.setOrderDate(LocalDate.now());

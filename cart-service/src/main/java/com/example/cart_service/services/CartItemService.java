@@ -29,7 +29,6 @@ public class CartItemService implements ICartItemService {
     public void addItemToCart(Long userId,Long cartId, Long productId, int quantity) {
         //get the cart
         Cart cart = cartService.getCart(cartId,userId);
-
         //get the product
         ProductResponse product = productServiceClient.getProductById(productId);
 

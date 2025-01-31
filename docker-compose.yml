@@ -10,13 +10,12 @@ services:
     env_file:
       - product-service/.env
     depends_on:
-      - product_db
+      - product-db
       - discovery-service
     volumes:
       - ./product-service/src:/app/src:rw
       - ./product-service/target:/app/target:rw
-    command:
-      sh -c "mvn spring-boot:run"
+    command: mvn spring-boot:run
 
   discovery-service:
     container_name: discovery-service
@@ -24,13 +23,7 @@ services:
       context: discovery-service/.
     ports:
       - "8761:8761"
-
-
-    volumes:
-      - ./discovery-service/src:/app/src:rw
-      - ./discovery-service/target:/app/target:rw
-    command:
-      sh -c "mvn spring-boot:run"
+    command: java -jar /app/app.jar
 
   cart-service:
     container_name: cart-service
@@ -46,8 +39,7 @@ services:
     volumes:
       - ./cart-service/src:/app/src:rw
       - ./cart-service/target:/app/target:rw
-    command:
-      sh -c "mvn spring-boot:run"
+    command: mvn spring-boot:run
 
   order-service:
     container_name: order-service
@@ -59,11 +51,11 @@ services:
       - order-service/.env
     depends_on:
       - discovery-service
+      - redis
     volumes:
-      - ./cart-service/src:/app/src:rw
-      - ./cart-service/target:/app/target:rw
-    command:
-      sh -c "mvn spring-boot:run"
+      - ./order-service/src:/app/src:rw
+      - ./order-service/target:/app/target:rw
+    command: mvn spring-boot:run
 
   auth-service:
     container_name: auth-service
@@ -74,48 +66,49 @@ services:
     env_file:
       - auth-service/.env
     depends_on:
-      - auth_db
+      - auth-db
       - discovery-service
     volumes:
-      - ./product-service/src:/app/src:rw
-      - ./product-service/target:/app/target:rw
-    command:
-      sh -c "mvn spring-boot:run"
+      - ./auth-service/src:/app/src:rw
+      - ./auth-service/target:/app/target:rw
+    command: mvn spring-boot:run
 
   redis:
     image: redis:latest
     container_name: redis
     ports:
-      - "6379:6379" # Maps Redis' default port
+      - "6380:6379"
     command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
     volumes:
       - redis_data:/data
+    sysctls:
+      - vm.overcommit_memory=1
 
-  product_db:
-    image: postgres
+  product-db:
+    container_name: product-db
+    image: postgres:13-alpine
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - productdb_postgres_data:/var/lib/postgresql/data/
     ports:
-      - 5433:5433
+      - "5433:5432"
     environment:
       - POSTGRES_USER=ecommerce
       - POSTGRES_PASSWORD=ecommerce
       - POSTGRES_DB=product
-      - PGDATA=/var/lib/postgresql/data
 
-  auth_db:
-    image: postgres
+  auth-db:
+    container_name: auth-db
+    image: postgres:13-alpine
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - authdb_postgres_data:/var/lib/postgresql/data/
     ports:
-      - 5431:5431
+      - "5431:5432"
     environment:
       - POSTGRES_USER=ecommerce
       - POSTGRES_PASSWORD=ecommerce
       - POSTGRES_DB=authdb
-      - PGDATA=/var/lib/postgresql/data
 
   adminer:
     image: adminer
@@ -123,10 +116,10 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - db
-
+      - product_db
+      - auth_db
 
 volumes:
-  postgres_data:
+  productdb_postgres_data:
+  authdb_postgres_data:
   redis_data:
-
