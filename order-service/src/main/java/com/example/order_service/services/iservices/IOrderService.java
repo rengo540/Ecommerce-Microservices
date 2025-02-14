@@ -11,11 +11,11 @@ import java.util.List;
 public interface IOrderService {
 
     Order placeOrder(Long userId,Long cartId);
-    OrderDto getOrder(Long orderId);
+    OrderDto getOrder(String orderId);
 
     List<OrderDto> getUserOrders(Long userId);
 
-    Order changeOrderState(Long orderId, String orderStatus);
+    Order changeOrderState(String orderId, String orderStatus);
     OrderDto convertToDto(Order order);
 
 }

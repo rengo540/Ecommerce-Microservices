@@ -59,7 +59,7 @@ public class ExceptionController {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 ex.getMessage(),
-                "An unexpected error occurred"
+                "An unexpected error occurred" + ex.getStackTrace().toString()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

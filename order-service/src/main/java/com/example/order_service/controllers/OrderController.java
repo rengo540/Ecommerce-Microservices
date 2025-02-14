@@ -29,7 +29,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/order")
-    public ResponseEntity<ApiResponse> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<ApiResponse> getOrderById(@PathVariable String orderId) {
 
             OrderDto order = orderService.getOrder(orderId);
             return ResponseEntity.ok(new ApiResponse("Item Order Success!", order));
@@ -44,7 +44,7 @@ public class OrderController {
     }
 
     @PutMapping("/change-status")
-    public ResponseEntity<ApiResponse> changeOrderState(@RequestParam Long orderId,
+    public ResponseEntity<ApiResponse> changeOrderState(@RequestParam String orderId,
                                                         @RequestParam String orderStatus) {
         Order order =  orderService.changeOrderState(orderId,orderStatus);
         OrderDto orderDto =  orderService.convertToDto(order);

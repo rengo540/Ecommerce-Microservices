@@ -16,6 +16,8 @@ services:
       - ./product-service/src:/app/src:rw
       - ./product-service/target:/app/target:rw
     command: mvn spring-boot:run
+    networks:
+      - my-network
 
   discovery-service:
     container_name: discovery-service
@@ -24,6 +26,8 @@ services:
     ports:
       - "8761:8761"
     command: java -jar /app/app.jar
+    networks:
+      - my-network
 
   cart-service:
     container_name: cart-service
@@ -40,6 +44,8 @@ services:
       - ./cart-service/src:/app/src:rw
       - ./cart-service/target:/app/target:rw
     command: mvn spring-boot:run
+    networks:
+      - my-network
 
   order-service:
     container_name: order-service
@@ -56,6 +62,24 @@ services:
       - ./order-service/src:/app/src:rw
       - ./order-service/target:/app/target:rw
     command: mvn spring-boot:run
+    networks:
+      - my-network
+
+  notification-service:
+    container_name: notification-service
+    build:
+      context: notification-service/.
+    ports:
+      - "8085:8080"
+    depends_on:
+      - discovery-service
+      - kafka
+    volumes:
+      - ./notification-service/src:/app/src:rw
+      - ./notification-service/target:/app/target:rw
+    command: mvn spring-boot:run
+    networks:
+      - my-network
 
   auth-service:
     container_name: auth-service
@@ -72,7 +96,8 @@ services:
       - ./auth-service/src:/app/src:rw
       - ./auth-service/target:/app/target:rw
     command: mvn spring-boot:run
-
+    networks:
+      - my-network
   redis:
     image: redis:latest
     container_name: redis
@@ -81,7 +106,8 @@ services:
     command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
     volumes:
       - redis_data:/data
-
+    networks:
+      - my-network
 
   product-db:
     container_name: product-db
@@ -95,6 +121,8 @@ services:
       - POSTGRES_USER=ecommerce
       - POSTGRES_PASSWORD=ecommerce
       - POSTGRES_DB=product
+    networks:
+      - my-network
 
   auth-db:
     container_name: auth-db
@@ -108,17 +136,49 @@ services:
       - POSTGRES_USER=ecommerce
       - POSTGRES_PASSWORD=ecommerce
       - POSTGRES_DB=authdb
+    networks:
+      - my-network
+
 
   adminer:
     image: adminer
     restart: always
     ports:
-      - 8080:8080
+      - "8080:8080"
     depends_on:
       - product_db
       - auth_db
+    networks:
+      - my-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - my-network
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - my-network
 
 volumes:
   productdb_postgres_data:
   authdb_postgres_data:
   redis_data:
+
+networks:
+  my-network:
+    driver: bridge

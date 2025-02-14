@@ -11,12 +11,14 @@ import com.example.order_service.remote.CartServiceClient;
 import com.example.order_service.remote.ProductServiceClient;
 import com.example.order_service.repos.OrderRepo;
 import com.example.order_service.response.CartResponse;
+import com.example.order_service.response.OrderUpdatesResponse;
 import com.example.order_service.response.ProductResponse;
 import com.example.order_service.services.iservices.IOrderService;
 import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +36,12 @@ public class OrderService implements IOrderService {
     private final ProductServiceClient productServiceClient;
     private final ModelMapper modelMapper;
     private final NextSequenceService nextSequenceService;
+    private final KafkaTemplate<String, OrderUpdatesResponse> kafkaTemplate;
     @Override
-    public OrderDto getOrder(Long orderId) {
+    public OrderDto getOrder(String orderId) {
+        kafkaTemplate.send("order-updates",new OrderUpdatesResponse("0",
+               " order.getOrderStatus().toString()",
+                5));
         return orderRepo.findById(orderId).map(this::convertToDto)
                 .orElseThrow(()->new ResourceNotFoundException("Order not found"));
     }
@@ -96,11 +102,15 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public Order changeOrderState(Long orderId,String orderStatusStr) {
+    public Order changeOrderState(String orderId,String orderStatusStr) {
         OrderStatus orderStatus = OrderStatus.valueOf(orderStatusStr.toUpperCase());
        Order order = orderRepo.findById(orderId).orElseThrow(NotFoundException::new);
        order.setOrderStatus(orderStatus);
-       return orderRepo.save(order);
+       order = orderRepo.save(order);
+       kafkaTemplate.send("order-updates",new OrderUpdatesResponse(order.getId(),
+               order.getOrderStatus().toString(),
+               order.getUserId()));
+       return order;
     }
 
     @Override
