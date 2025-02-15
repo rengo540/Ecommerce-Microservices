@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    basic:
+      enabled: false
+  application:
+  name: gateway_service
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://auth-service
+          predicates:
+              - Path=/users/**
+          filters:
+            - TokenValidationFilterFactory
+            - RewritePath=/users/(?<segment>.*), /users/${segment}
+
+
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?<segment>.*), /auth/${segment}
+
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/orders/**
+          filters:
+            - TokenValidationFilterFactory
+
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+              - Path=/cartItems/**, /carts/**
+          filters:
+            - TokenValidationFilterFactoryCart
+            - RewritePath=/cartItems/(?<segment>.*), /cartItems/${segment}
+            - RewritePath=/carts/(?<segment>.*), /carts/${segment}
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/products/**, /categories/**, /images/**
+          filters:
+            - RewritePath=/products/(?<segment>.*), /products/${segment}
+            - RewritePath=/categories/(?<segment>.*), /categories/${segment}
+            - RewritePath=/images/(?<segment>.*), /images/${segment}
+
+
+
+
+auth:
+  token:
+    jwtkey: ${jwtkey}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka:password@discovery-service:8761/eureka/
+
+
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+        servlet:
+            DispatcherServlet: DEBUG
+
+

@@ -1,11 +1,15 @@
 package com.example.auth_service.controllers;
 
 
+import com.example.auth_service.dtos.CreateUserRequest;
 import com.example.auth_service.dtos.LoginRequest;
+import com.example.auth_service.dtos.UserDto;
+import com.example.auth_service.models.User;
 import com.example.auth_service.response.ApiResponse;
 import com.example.auth_service.response.JwtResponse;
 import com.example.auth_service.security.UserAppDetails;
 import com.example.auth_service.security.jwt.JwtUtils;
+import com.example.auth_service.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
-
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -42,5 +46,13 @@ public class AuthController {
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(e.getMessage(), null));
         }
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<ApiResponse> createUser(@RequestBody CreateUserRequest request) {
+        User user = userService.createUser(request);
+        UserDto userDto = userService.convertUserToDto(user);
+        return ResponseEntity.ok(new ApiResponse("Create User Success!", userDto));
+
     }
 }

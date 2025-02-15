@@ -98,6 +98,25 @@ services:
     command: mvn spring-boot:run
     networks:
       - my-network
+
+  gateway-service:
+    container_name: gateway-service
+    build:
+      context: api-gateway/.
+    ports:
+      - "8086:8080"
+    env_file:
+      - api-gateway/.env
+    depends_on:
+      - discovery-service
+    volumes:
+      - ./api-gateway/src:/app/src:rw
+      - ./api-gateway/target:/app/target:rw
+    command: mvn spring-boot:run
+    networks:
+      - my-network
+
+
   redis:
     image: redis:latest
     container_name: redis

@@ -20,10 +20,14 @@ public class CartController {
     private final ICartService cartService;
 
     @GetMapping("/{cartId}/my-cart")
-    public ResponseEntity<ApiResponse> getCart(@PathVariable Long cartId
-                                               ,@RequestParam(required = false) Long userId){
-
-           Cart cart = cartService.getCart(cartId,userId);
+    public ResponseEntity<ApiResponse> getCart(@PathVariable Long cartId,
+                                               @RequestHeader(value = "userId", required = false, defaultValue ="") String userId
+                                               ){
+            Long user_id=null;
+             if(!userId.isEmpty()){
+                 user_id = Long.valueOf(userId);
+             }
+           Cart cart = cartService.getCart(cartId,user_id);
            return ResponseEntity.ok(new ApiResponse("success",cart));
 
     }
@@ -38,9 +42,12 @@ public class CartController {
 
     @GetMapping("/{cartId}/totalprice")
     public ResponseEntity<ApiResponse> getTotalAmount(@PathVariable  Long cartId
-                                                    ,@RequestParam(required = false) Long userId){
-
-            BigDecimal totalPrice = cartService.getTotalPrice(cartId,userId);
+                                                    , @RequestHeader(value = "userId", required = false, defaultValue ="") String userId){
+        Long user_id=null;
+        if(!userId.isEmpty()){
+            user_id = Long.valueOf(userId);
+        }
+            BigDecimal totalPrice = cartService.getTotalPrice(cartId,user_id);
             return  ResponseEntity.ok(new ApiResponse("total price",totalPrice));
 
     }

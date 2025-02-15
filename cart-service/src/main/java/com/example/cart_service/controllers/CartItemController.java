@@ -20,13 +20,17 @@ public class CartItemController {
     @PostMapping("/item/add")
     public ResponseEntity<ApiResponse> addItemToCart(@RequestParam(required = false) Long cartId,
                                                      @RequestParam Long productId,
-                                                     @RequestParam(required = false) Long userId,
+                                                     @RequestHeader(value = "userId", required = false, defaultValue ="") String userId,
                                                      @RequestParam Integer quantity){
+            Long user_id=null;
+            if(!userId.isEmpty()){
+                user_id = Long.valueOf(userId);
+            }
             if (cartId == null) {
-                cartId = cartService.intializrCart(userId);
+                cartId = cartService.intializrCart(user_id);
             }
 
-         cartItemService.addItemToCart(userId,cartId,productId,quantity);
+        cartItemService.addItemToCart(user_id,cartId,productId,quantity);
 
          return ResponseEntity.ok(new ApiResponse("cartId: ",cartId));
 
@@ -34,21 +38,28 @@ public class CartItemController {
 
     @DeleteMapping("/cart/{cartId}/item/{itemId}/remove")
     public ResponseEntity<ApiResponse> removeItemFromCart(@PathVariable Long cartId,
-                                                          @RequestParam(required = false) Long userId,
+                                                          @RequestHeader(value = "userId", required = false, defaultValue ="") String userId,
                                                           @PathVariable Long productId){
-
-            cartItemService.removeItemFromCart(userId,cartId,productId);
+            Long user_id=null;
+            if(!userId.isEmpty()){
+                user_id = Long.valueOf(userId);
+            }
+            cartItemService.removeItemFromCart(user_id,cartId,productId);
             return ResponseEntity.ok(new ApiResponse("remove item success",null));
 
     }
 
     @PutMapping("/cart/{cartId}/item/{productId}/update")
     public ResponseEntity<ApiResponse> updateItemQuantity(@PathVariable Long cartId,
-                                                          @RequestParam(required = false) Long userId,
+                                                          @RequestHeader(value = "userId", required = false, defaultValue ="") String userId,
                                                           @PathVariable Long productId,
                                                           @RequestParam Integer newQuantity){
 
-            cartItemService.updateItemQuantity(userId,cartId,productId,newQuantity);
+            Long user_id=null;
+            if(!userId.isEmpty()){
+                user_id = Long.valueOf(userId);
+            }
+            cartItemService.updateItemQuantity(user_id,cartId,productId,newQuantity);
             return ResponseEntity.ok(new ApiResponse("update item quantity success",null));
 
     }
